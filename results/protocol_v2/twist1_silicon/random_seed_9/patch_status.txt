@@ -1,0 +1,9 @@
+Twist 1 random seed 9 — export-ref silicon prediction
+Date: 2026-09-02 21:39:20
+
+Export ref (493512 windows): 67.49%
+Predicted board accuracy: 67.49%
+Gap vs informed anchor C (72.84%): +5.35 pp
+
+Method: pooled random mask @ keep=0.125 (patch_emg_anchor.py path).
+Board replay: pending — run scripts/run_silicon_random_seeds.sh --board

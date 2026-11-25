@@ -10,7 +10,7 @@
   "gap_vs_informed_board_pp": 5.21,
   "prediction_method": "export_ref_calibrated",
   "calibration_note": "Seed 0 board matched export ref (\u03940.00 pp); same path assumed.",
-  "elapsed_s": 14.5,
+  "elapsed_s": 75.7,
   "mask_density": 0.125,
   "data_source": "dataset.mat",
   "board_measured": true,

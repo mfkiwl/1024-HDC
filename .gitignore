@@ -70,3 +70,22 @@ board/HDC_DMA/platform/**/bsp/_hsi_regen/
 docs/presentation/node_modules/
 docs/presentation/package-lock.json
 docs/presentation/*.log
+
+# Cursor local
+.cursor/
+
+# extras scratch regenerates
+extras/work/
+extras/dist/
+extras/scratch/transcript
+extras/docs/presentation/node_modules/
+extras/docs/presentation/package-lock.json
+extras/docs/presentation/*.log
+
+# Large local datasets (clone / download separately)
+extras/data/
+
+# Large silicon caches (regenerate locally)
+results/**/cohort_cache.npz
+extras/data/
+

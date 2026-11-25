@@ -1,0 +1,253 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{balance}
+
+% Figures live in repo results/figures/
+\graphicspath{{../results/figures/}}
+
+\begin{document}
+
+\title{Informed Bit-Position Pruning for Streaming Hyperdimensional Computing on Zynq\\
+{\footnotesize A Verified Silicon Study of Accuracy, Energy, and Cross-Subject Mask Transfer}
+}
+
+\author{
+\IEEEauthorblockN{Harshavardhan Reddy Narra}
+\IEEEauthorblockA{Ming Hsieh Department of Electrical and Computer Engineering\\
+University of Southern California\\
+Los Angeles, CA, USA\\
+hnarra@usc.edu}
+\and
+\IEEEauthorblockN{Srinivas Boppu}
+\IEEEauthorblockA{School of Electrical Sciences\\
+IIT Bhubaneswar\\
+Bhubaneswar, India\\
+\textit{email TBD}}
+}
+
+\maketitle
+
+% IEEE: avoid symbols and math in the abstract.
+\begin{abstract}
+Hyperdimensional computing (HDC) is attractive for low-latency edge inference, yet
+prior FPGA studies often vary hypervector dimension rather than asking which bit
+positions matter under compression.
+We present a bit-exact streaming 1024-bit HDC classifier on Xilinx Zynq-7020,
+controlled over AXI4-Lite and fed by AXI4-Stream with DMA batching, and validate it
+on EMG hand-gesture recognition under a frozen five-subject protocol.
+Over 658 thousand test windows, silicon replay matches the Python golden reference
+with zero accuracy delta.
+We map accuracy, out-of-context area, and measured board energy across dimension,
+bundle precision, and Fisher-informed pruning, and show that informed pruning to
+87.5 percent sparsity is accuracy-neutral on silicon while random masks at the same
+density lose 8.6 percentage points.
+A pooled Fisher mask trained on three subjects transfers to two held-out subjects with
+only 0.86 percentage points loss.
+Programmable-logic batch inference is about 200 times faster and 175 times lower in
+measured energy per window than ARM software HDC on the same board.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Hyperdimensional computing, FPGA, Zynq, pruning, Fisher mask, EMG classification, energy measurement
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{sec:intro}
+
+% TODO: 3 paragraphs + bullet contributions
+% P1: HDC on FPGA for edge EMG; prior work prunes D not bit positions.
+% P2: Gap: need verified deployment + measured Pareto + iso-density pruning study.
+% P3: What we built on Zynq (streaming, bit-exact, INA219 energy).
+
+Hyperdimensional computing (HDC) offers lightweight inference for wearable sensing,
+but most FPGA-HDC work reports accuracy at fixed dimension rather than studying
+\emph{which} hypervector bits can be removed without harming classification.
+We target EMG hand-gesture recognition on a Zynq-7020 ZedBoard with a streaming
+AXI-DMA datapath and a discriminability-guided pruning mask programmed from software.
+
+\textbf{Contributions.}
+\begin{itemize}
+\item A bit-exact 1024-bit HDC accelerator with XOR bind, cyclic permute, majority
+bundle, and masked Hamming associative memory, verified by nine co-simulation harnesses
+and 658{,}004-window EMG replay on silicon (74.24\% spatial accuracy, $\Delta=0.00\%$).
+\item A Hook~A accuracy--area--energy study over dimension, bundle precision, and
+Fisher keep ratio, with measured INA219 energy at silicon anchors A/B/C and an ARM
+software baseline ($\sim$12 vs.\ $\sim$2088\,$\mu$J/window batch-amortized).
+\item Twist~1: at iso-density, Fisher-informed masks preserve accuracy while random
+masks lose 8.63 percentage points at 128 kept bits (keep ratio 0.125).
+\item Twist~2: a pooled Fisher mask from three training subjects transfers to two
+held-out subjects with 0.86 percentage points gap versus a local oracle mask.
+\end{itemize}
+
+\section{Background and Related Work}
+\label{sec:related}
+
+% TODO: HDC primitives; Rahimi FPGA-HDC EMG; pruning prior art (dimension vs bits).
+% Cite: Rahimi ICRC 2016, recent FPGA-HDC surveys.
+
+\subsection{Hyperdimensional Computing}
+Binary spatter codes represent symbols as high-dimensional binary vectors; binding
+(XOR), permutation, and bundling (majority vote) compose structured hypervectors for
+classification by Hamming nearest-prototype search.
+
+\subsection{FPGA-HDC and Pruning}
+Prior FPGA-HDC EMG work established competitive accuracy with hardware acceleration.
+Our work differs by (i) a verified streaming AXI path, (ii) bit-\emph{position} pruning
+via Fisher masks at fixed density, and (iii) measured Zynq board energy rather than
+proxy metrics alone.
+
+\section{System Architecture}
+\label{sec:arch}
+
+% TODO: block diagram figure; cite rtl/ modules.
+% Key facts: 100 MHz PL, zero DSP/BRAM, pruning_mask.sv, item_mem LUT ROM.
+
+Figure~\ref{fig:arch} shows the datapath.
+The processing system programs prototypes and the global pruning mask over AXI4-Lite;
+inference windows stream over AXI4-Stream with scatter-gather DMA batching.
+
+\begin{figure}[t]
+\centering
+% TODO: replace with architecture diagram (from slides or new TikZ)
+\fbox{\parbox{0.92\columnwidth}{\centering\vspace{1.2cm}
+\textbf{[TODO: System block diagram]}\\
+PS (AXI-Lite) + PL core + DMA stream + pruning mask\vspace{1.2cm}}}
+\caption{Streaming HDC system on Zynq-7020: PS programs masks and prototypes; PL
+executes encode--classify; DMA delivers batched EMG windows.}
+\label{fig:arch}
+\end{figure}
+
+Post-route utilization on xc7z020 for the DMA path is 35{,}206 LUTs (66.2\%) and
+27{,}639 FFs, with zero DSP and zero BRAM blocks.
+
+\section{Verification and Methodology}
+\label{sec:method}
+
+\subsection{Protocol and Encoders}
+We use frozen protocol \textbf{P-may2026}: five UCI EMG configuration subjects,
+stratified train/test split, seed~1.
+Python Stage~B reproduces literature-class $\sim$90\% accuracy with a four-channel
+record encoder; the deployed RTL encoder (Eq.~3.1 grid, seed-42 item memory) targets
+74.24\% and is the silicon verification path---not a failure to match literature on
+hardware.
+
+\subsection{Co-Simulation and Board Replay}
+Each RTL block is checked bit-for-bit against a Python golden model.
+Board PASS requires $|$accuracy$_{\mathrm{board}} - $accuracy$_{\mathrm{ref}}| \le 0.5\%$.
+
+\subsection{Energy Measurement}
+Whole-board 12\,V input power is sensed at the ZedBoard J21 shunt with an INA219 on
+a Raspberry Pi (I$^2$C).
+Batch integration scales energy by measured batch duration ($\sim$0.93\,ms for PL,
+$\sim$164\,ms for ARM over 200 windows), not the full logging interval.
+
+\subsection{Hook A, Twist 1, and Twist 2}
+Hook~A sweeps $D \in \{256,512,1024,2048\}$, CNT\_W $\in \{3,4,5,6\}$, keep
+$\in \{1.0,0.5,0.25,0.125\}$ with per-subject Fisher masks (320 rows).
+Silicon anchors A/B/C use a pooled Fisher mask at $D{=}1024$, CNT\_W${=}6$.
+Twist~1 compares informed vs.\ random masks at equal kept-bit count (five random seeds).
+Twist~2 trains a pooled mask on subjects 1--3 and evaluates on held-out subjects 4--5.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Verification and Baselines}
+Table~\ref{tab:baselines} summarizes deployment baselines at matched protocol.
+PL DMA batch inference is $\sim$200$\times$ faster than ARM software HDC; measured
+energy is $\sim$175$\times$ lower batch-amortized.
+
+\begin{table}[t]
+\caption{Deployment baselines (P-may2026, five subjects).}
+\label{tab:baselines}
+\centering
+\begin{tabular}{lccc}
+\hline
+\textbf{Path} & \textbf{Acc.} & \textbf{Latency} & \textbf{Energy} \\
+\hline
+PL DMA batch & 74.24\% & $\sim$4\,$\mu$s/w & 11.98\,$\mu$J/w \\
+ARM HDC & 74.15\% & 819\,$\mu$s/w & 2088\,$\mu$J/w \\
+Tiny int8 MLP & 93.0\% & --- & --- \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Hook A: Accuracy--Area--Energy Pareto}
+At $D{=}1024$ and CNT\_W $\ge 4$, informed Fisher pruning is flat at 74.15\% from
+0\% to 87.5\% prune in Python; silicon anchor replays A/B/C remain $\sim$74.3\%.
+Measured total energy at anchors A/B/C is similarly flat ($\sim$12\,$\mu$J/w),
+indicating static-dominated board power rather than prune-dependent joules.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{hookA_pareto_measured.png}
+\caption{Hook~A Pareto with measured silicon energy: (a) Python OOC LUT sweep with
+placed anchor; (b) measured $\mu$J/window at anchors A/B/C and ARM path.}
+\label{fig:pareto}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fisher_heatmap.png}
+\caption{Fisher score heatmap and informed mask cutoffs at keep ratios 0.5 and 0.125.}
+\label{fig:fisher}
+\end{figure}
+
+\subsection{Twist 1: Informed vs.\ Random at Iso-Density}
+At keep${=}0.125$ (128 bits), informed masks retain 74.15\% spatial mean accuracy
+while random masks average 65.51\% ($+8.63$\,pp gap, $\ge$5\,pp target met).
+At keep${=}0.5$ the gap is smaller ($+1.70$\,pp), consistent with random masks
+retaining enough signal at moderate density.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{twist1_informed_vs_random_keep0125.png}
+\caption{Twist~1 headline at keep${=}0.125$: informed vs.\ random iso-density pruning.}
+\label{fig:twist1}
+\end{figure}
+
+\subsection{Twist 2: Cross-Subject Mask Transfer}
+A pooled Fisher mask from subjects 1--3 yields 68.45\% on held-out subjects 4--5
+versus 69.31\% for local oracle masks ($+0.86$\,pp gap, below 3\,pp pilot threshold).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{twist2_cross_subject.png}
+\caption{Twist~2: local oracle vs.\ pooled transfer mask on held-out subjects.}
+\label{fig:twist2}
+\end{figure}
+
+\section{Discussion and Limitations}
+\label{sec:limit}
+
+Measured board energy does not decrease with pruning because total $\mu$J/window is
+static-dominated at batch throughput; pruning primarily reduces effective search width
+and area proxy, not J21 input joules under our measurement setup.
+The deployed RTL encoder ($\sim$74\%) intentionally differs from literature Stage~B
+($\sim$90\%) encoding; claims are relative to the verified deployment path.
+Twist experiments use five configuration subjects; broader leave-one-subject-out
+studies are future work.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a verified streaming HDC accelerator on Zynq with measured accuracy,
+area, and energy characterization.
+Informed Fisher bit-position pruning preserves accuracy through aggressive compression
+where random iso-density masks fail, and pooled masks transfer across subjects with
+small loss.
+Future work includes PL-rail power isolation, larger subject cohorts, and encoder
+studies to narrow the deployment vs.\ literature accuracy gap.
+
+\section*{Acknowledgment}
+% TODO: funding, lab, dataset credit (HDC-EMG GPLv3 fetch).
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

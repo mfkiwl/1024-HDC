@@ -1153,7 +1153,8 @@ def fig_twist1_three_baselines(
         y_mins.append(min(vals) - max(errs) - 4)
         y_maxs.append(max(v + e for v, e in zip(vals, errs)) + 4)
         if PAPER_MODE:
-            panel_tag(ax, tag)
+            if n_panels > 1:
+                panel_tag(ax, tag)
             ax.set_title("")
         else:
             ax.set_title(

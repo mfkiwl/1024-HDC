@@ -1,0 +1,14 @@
+== split audit: synthetic self-test ==
+  OK  synthetic HDC-2 disjoint split
+
+== split audit: emg_baseline_v2.json ==
+  S1: train=37206 test=111625 overlap=0 mode=disjoint
+  S2: train=34782 test=104353 overlap=0 mode=disjoint
+  S3: train=34391 test=103182 overlap=0 mode=disjoint
+  S4: train=33582 test=100753 overlap=0 mode=disjoint
+  S5: train=24531 test=73599 overlap=0 mode=disjoint
+
+Wrote C:\Modelsim_projects\1024HDC\results\protocol_v2\split_audit.json
+Wrote C:\Modelsim_projects\1024HDC\results\protocol_v2\split_audit.csv
+  protocol=HDC-2  total_overlap=0
+  HDC-2 GATE: PASS (overlap=0)

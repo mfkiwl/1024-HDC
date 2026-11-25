@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "generated_at": "2026-07-21T06:03:10Z",
+    "engine": "hdc_ref",
+    "dataset": "C:\\Modelsim_projects\\1024HDC\\python_ref\\HDC-EMG\\dataset_36.mat",
+    "protocol": "HDC-2",
+    "target_gap_pp": 3.0,
+    "generalises": true,
+    "elapsed_s": 125.0,
+    "max_train_windows_per_subject": 2000,
+    "max_test_windows_per_subject": 2000
+  },
+  "result": {
+    "train_subjects": [
+      1,
+      2
+    ],
+    "test_subjects": [
+      19,
+      20
+    ],
+    "D": 1024,
+    "cnt_w": 6,
+    "keep_ratio": 0.03125,
+    "n_keep": 32,
+    "n_random_seeds": 2,
+    "random_seed0": 0,
+    "pooled_train_windows": 4000,
+    "per_test_subject": [
+      {
+        "subject": 19,
+        "n_test": 2000,
+        "unpruned_accuracy": 0.856,
+        "local_oracle_accuracy": 0.856,
+        "pooled_transfer_accuracy": 0.856,
+        "random_accuracy_mean": 0.856,
+        "random_accuracy_std": 0.0,
+        "gap_local_minus_pooled_pp": 0.0,
+        "gap_pooled_minus_random_pp": 0.0,
+        "jaccard_pooled_vs_local": 0.4883720930232558
+      },
+      {
+        "subject": 20,
+        "n_test": 2000,
+        "unpruned_accuracy": 0.672,
+        "local_oracle_accuracy": 0.672,
+        "pooled_transfer_accuracy": 0.672,
+        "random_accuracy_mean": 0.672,
+        "random_accuracy_std": 0.0,
+        "gap_local_minus_pooled_pp": 0.0,
+        "gap_pooled_minus_random_pp": 0.0,
+        "jaccard_pooled_vs_local": 0.4222222222222222
+      }
+    ],
+    "mean_unpruned_accuracy": 0.764,
+    "mean_local_oracle_accuracy": 0.764,
+    "mean_pooled_transfer_accuracy": 0.764,
+    "mean_random_accuracy": 0.764,
+    "mean_gap_local_minus_pooled_pp": 0.0,
+    "mean_gap_pooled_minus_random_pp": 0.0,
+    "mean_jaccard_pooled_vs_local": 0.45529715762273903
+  }
+}
